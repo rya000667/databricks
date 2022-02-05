@@ -1,0 +1,10 @@
+{
+  "scope": "my-simple-azure-keyvault-scope",
+  "scope_backend_type": "AZURE_KEYVAULT",
+  "backend_azure_keyvault":
+  {
+    "resource_id": "/subscriptions/dcc586ee-e6f5-49bb-961d-46e52119e293/resourceGroups/ryanTestrg/providers/Microsoft.KeyVault/vaults/test-key-vault-app-reg",
+    "dns_name": "https://test-key-vault-app-reg.vault.azure.net/"
+  },
+  "initial_manage_principal": "users"
+}
