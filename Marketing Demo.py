@@ -2,13 +2,13 @@
 # MAGIC %md
 # MAGIC # Classification Demo to Marketing Team
 # MAGIC 
-# MAGIC **Objective**: *Demonstrate the use of Principal Components Analysis on a dataset.*
 # MAGIC 
 # MAGIC Accessing Data in ADLS<br>
 # MAGIC Data Exploration<br>
 # MAGIC Databricks Inline Graph Tools <br>
 # MAGIC Use of SQL <br>
-# MAGIC End to End DS Project <br>
+# MAGIC DS model lifecycle in pandas <br>
+# MAGIC DS model lifecycle in pyspark <br>
 
 # COMMAND ----------
 
