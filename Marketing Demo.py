@@ -394,3 +394,168 @@ print(f'model 1: {lr_agg_1.score(X_1_test, y_1_test)}')
 print(f'model 2: {lr_agg_2.score(X_2_test, y_2_test)}')
 print(f'model 3: {lr_agg_3.score(X_3_test, y_3_test)}')
 print(f'model 4: {lr_agg_4.score(X_4_test, y_4_test)}')
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC # pyspark ML
+
+# COMMAND ----------
+
+import mlflow
+import mlflow.spark
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.feature import VectorAssembler
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml.feature import StringIndexer
+
+# COMMAND ----------
+
+import pyspark.ml
+
+# COMMAND ----------
+
+dir(pyspark.ml)
+
+# COMMAND ----------
+
+
+ht_agg_spark_df = spark.sql("SELECT * FROM dsfda.ht_agg_metrics")
+
+# label encoding with StringIndexer
+indexer = StringIndexer(inputCol="lifestyle", outputCol="lifestyleIndex")
+indexed = indexer.fit(ht_agg_spark_df).transform(ht_agg_spark_df)
+
+
+indexed.display()
+
+# COMMAND ----------
+
+
+# build vector assembler
+assembler = VectorAssembler(inputCols=['avg_vo2', 'avg_workout_minutes','avg_steps'], outputCol="features")
+
+output = assembler.transform(indexed)
+
+final_df = output.select("features", "lifestyleIndex")
+
+# COMMAND ----------
+
+final_df.display(10)
+
+# COMMAND ----------
+
+# create train test split
+train, test = final_df.randomSplit([0.7, 0.3], seed=50)
+
+# COMMAND ----------
+
+train.display(10)
+
+# COMMAND ----------
+
+from pyspark.ml.classification import LogisticRegression
+
+# COMMAND ----------
+
+lr_spark = LogisticRegression(labelCol="lifestyleIndex")
+
+lrm = lr_spark.fit(train)
+
+# COMMAND ----------
+
+lrm
+
+# COMMAND ----------
+
+dir(lrm.summary)
+
+# COMMAND ----------
+
+type(lrm)
+
+# COMMAND ----------
+
+lrm.summary.predictions.display()
+
+# COMMAND ----------
+
+lrm.summary.predictions.describe().show()
+
+# COMMAND ----------
+
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+
+pred_labels = lrm.evaluate(test)
+
+# COMMAND ----------
+
+pred_labels.predictions.show()
+
+# COMMAND ----------
+
+eval = BinaryClassificationEvaluator(rawPredictionCol="prediction", labelCol="lifestyleIndex")
+
+auc = eval.evaluate(pred_labels.predictions)
+
+# COMMAND ----------
+
+auc
+
+# COMMAND ----------
+
+lr_spark_1 = LogisticRegression(maxIter=10000)
+lr_spark_2 = LogisticRegression(maxIter=10000)
+lr_spark_3 = LogisticRegression(maxIter=10000)
+lr_spark_4 = LogisticRegression(maxIter=10000)
+
+# extract features
+X_1 = ht_agg_df[['avg_steps']]
+X_2 = ht_agg_df[['avg_resting_heartrate','avg_bmi']]
+X_3 = ht_agg_df[['avg_vo2', 'avg_workout_minutes']]
+X_4 = ht_agg_df[['avg_vo2', 'avg_workout_minutes','avg_steps']]
+
+# train test split
+X_1_train, X_1_test, y_1_train, y_1_test = train_test_split(X_1, y_agg)
+X_2_train, X_2_test, y_2_train, y_2_test = train_test_split(X_2, y_agg)
+X_3_train, X_3_test, y_3_train, y_3_test = train_test_split(X_3, y_agg)
+X_4_train, X_4_test, y_4_train, y_4_test = train_test_split(X_4, y_agg)
+
+
+# train models
+lr_agg_1.fit(X_1_train, y_1_train)
+lr_agg_2.fit(X_2_train, y_2_train)
+lr_agg_3.fit(X_3_train, y_3_train)
+lr_agg_4.fit(X_4_train, y_4_train)
+
+
+# score 
+
+# COMMAND ----------
+
+y_agg
+
+# COMMAND ----------
+
+help(lr_spark_1.fit)
+
+# COMMAND ----------
+
+# train models
+lr_spark_1.fit(X_1_train, y_1_train)
+lr_spark_2.fit(X_2_train, y_2_train)
+lr_spark_3.fit(X_3_train, y_3_train)
+lr_spark_4.fit(X_4_train, y_4_train)
+
+
+# score 
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #MLflow
+
+# COMMAND ----------
+
+
