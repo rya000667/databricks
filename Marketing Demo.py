@@ -397,18 +397,50 @@ print(f'model 4: {lr_agg_4.score(X_4_test, y_4_test)}')
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC # pyspark ML
+# MAGIC %md 
+# MAGIC # Capture Model Details on Runs with MLflow
 
 # COMMAND ----------
 
 import mlflow
 import mlflow.spark
-from pyspark.ml.regression import LinearRegression
+from mlflow.models.signature import infer_signature
+import mlflow.sklearn
+
+with mlflow.start_run(run_name="Log Model - sklearn") as run:
+    mlflow.sklearn.autolog(log_input_examples=True, log_model_signatures=True, log_models=True)
+    lr = LogisticRegression(max_iter=10000)
+    lr.fit(X_4_train, y_4_train)
+    signature = infer_signature(X_4_train, lr.predict(X_4_train))
+
+# COMMAND ----------
+
+model_name = 'rh-sklearn-log-reg-model'
+
+run_id = run.info.run_id
+model_uri = f'runs:/{run_id}/model'
+
+model_details = mlflow.register_model(model_uri=model_uri, name=model_name)
+
+# COMMAND ----------
+
+pred_out = lr.predict(X_4_train)
+
+pred_out
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC # pyspark ML
+
+# COMMAND ----------
+
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml import Pipeline
-from pyspark.ml.evaluation import RegressionEvaluator
 from pyspark.ml.feature import StringIndexer
+
+# mlflow.autolog()
+# mlflow.spark.autolog()
 
 # COMMAND ----------
 
@@ -459,21 +491,20 @@ from pyspark.ml.classification import LogisticRegression
 
 # COMMAND ----------
 
-lr_spark = LogisticRegression(labelCol="lifestyleIndex")
-
-lrm = lr_spark.fit(train)
-
-# COMMAND ----------
-
-lrm
-
-# COMMAND ----------
-
-dir(lrm.summary)
+with mlflow.start_run(run_name="Log Model") as run:
+    mlflow.autolog(log_input_examples=True, log_model_signatures=True, log_models=True)
+    lr_spark = LogisticRegression(labelCol="lifestyleIndex")
+    lrm = lr_spark.fit(train)
+    summary_df = lrm.summary.predictions.toPandas()
+    signature = infer_signature(train, summary_df['prediction'].values)
 
 # COMMAND ----------
 
-type(lrm)
+summary_pddf = summary.toPandas()
+
+# COMMAND ----------
+
+summary_pddf['prediction'].values
 
 # COMMAND ----------
 
@@ -506,54 +537,6 @@ auc = eval.evaluate(pred_labels.predictions)
 # COMMAND ----------
 
 auc
-
-# COMMAND ----------
-
-lr_spark_1 = LogisticRegression(maxIter=10000)
-lr_spark_2 = LogisticRegression(maxIter=10000)
-lr_spark_3 = LogisticRegression(maxIter=10000)
-lr_spark_4 = LogisticRegression(maxIter=10000)
-
-# extract features
-X_1 = ht_agg_df[['avg_steps']]
-X_2 = ht_agg_df[['avg_resting_heartrate','avg_bmi']]
-X_3 = ht_agg_df[['avg_vo2', 'avg_workout_minutes']]
-X_4 = ht_agg_df[['avg_vo2', 'avg_workout_minutes','avg_steps']]
-
-# train test split
-X_1_train, X_1_test, y_1_train, y_1_test = train_test_split(X_1, y_agg)
-X_2_train, X_2_test, y_2_train, y_2_test = train_test_split(X_2, y_agg)
-X_3_train, X_3_test, y_3_train, y_3_test = train_test_split(X_3, y_agg)
-X_4_train, X_4_test, y_4_train, y_4_test = train_test_split(X_4, y_agg)
-
-
-# train models
-lr_agg_1.fit(X_1_train, y_1_train)
-lr_agg_2.fit(X_2_train, y_2_train)
-lr_agg_3.fit(X_3_train, y_3_train)
-lr_agg_4.fit(X_4_train, y_4_train)
-
-
-# score 
-
-# COMMAND ----------
-
-y_agg
-
-# COMMAND ----------
-
-help(lr_spark_1.fit)
-
-# COMMAND ----------
-
-# train models
-lr_spark_1.fit(X_1_train, y_1_train)
-lr_spark_2.fit(X_2_train, y_2_train)
-lr_spark_3.fit(X_3_train, y_3_train)
-lr_spark_4.fit(X_4_train, y_4_train)
-
-
-# score 
 
 # COMMAND ----------
 
