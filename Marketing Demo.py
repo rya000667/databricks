@@ -491,7 +491,11 @@ pred_labels = lrm.evaluate(test)
 
 # COMMAND ----------
 
-pred_labels.predictions.show()
+pred_labels.predictions.display()
+
+# COMMAND ----------
+
+pred_labels.accuracy
 
 # COMMAND ----------
 
