@@ -9,6 +9,8 @@
 # MAGIC Use of SQL <br>
 # MAGIC DS model lifecycle in pandas <br>
 # MAGIC DS model lifecycle in pyspark <br>
+# MAGIC MLflow <br>
+# MAGIC AutoML <br>
 
 # COMMAND ----------
 
@@ -119,8 +121,7 @@ spark.sql(
 
 # MAGIC %sql
 # MAGIC /*
-# MAGIC Since 90% of people are not sedentary, assume that all people are not sedentary should yield baseline accuracy of 90%
-# MAGIC Results = 88.5%
+# MAGIC Since most people are not sedentary, assume that all people are not sedentary should yield baseline accuracy of 88.5%
 # MAGIC */
 # MAGIC SELECT a.number_correct / b.number_total AS accuracy
 # MAGIC FROM (SELECT count(*) AS number_correct 
@@ -131,7 +132,7 @@ spark.sql(
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC # Pull in HT Daily Metrics Data
+# MAGIC # Pull in Health Tracker Daily Metrics Data
 
 # COMMAND ----------
 
@@ -169,7 +170,6 @@ ht_users_metrics_df.display()
 ht_users_train_sdf = spark.createDataFrame(ht_users_train_df)
 ht_users_test_sdf = spark.createDataFrame(ht_users_test_df)
 '''
-
 from sklearn.preprocessing import LabelEncoder 
 le = LabelEncoder()
 
@@ -180,6 +180,10 @@ le.fit(lifestyle)
 
 # get output y array for lifestyle labels
 y = le.transform(lifestyle)
+
+# COMMAND ----------
+
+y
 
 # COMMAND ----------
 
@@ -309,6 +313,7 @@ lr_2.fit(X_2_train, y_2_train)
 #score data
 print(f'model 1: {lr_1.score(X_1_test, y_1_test)}')
 print(f'model 2: {lr_2.score(X_2_test, y_2_test)}')
+
 
 # COMMAND ----------
 
@@ -496,23 +501,18 @@ with mlflow.start_run(run_name="Log Model") as run:
     lr_spark = LogisticRegression(labelCol="lifestyleIndex")
     lrm = lr_spark.fit(train)
     summary_df = lrm.summary.predictions.toPandas()
-    signature = infer_signature(train, summary_df['prediction'].values)
+    ## signature = infer_signature(train, summary_df['prediction'].values)
+    
+model_name = 'rh-pyspark-ml-log-reg-model'
 
-# COMMAND ----------
+run_id = run.info.run_id
+model_uri = f'runs:/{run_id}/model'
 
-summary_pddf = summary.toPandas()
-
-# COMMAND ----------
-
-summary_pddf['prediction'].values
+model_details = mlflow.register_model(model_uri=model_uri, name=model_name)
 
 # COMMAND ----------
 
 lrm.summary.predictions.display()
-
-# COMMAND ----------
-
-lrm.summary.predictions.describe().show()
 
 # COMMAND ----------
 
@@ -541,7 +541,34 @@ auc
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC #MLflow
+# MAGIC #AutoML Demo
+
+# COMMAND ----------
+
+# Pull back train test split; same just showing here again
+train, test = ht_agg_spark_df.randomSplit([0.7, 0.3], seed=50)
+
+# COMMAND ----------
+
+type(train)
+
+# COMMAND ----------
+
+help(automl.regress)
+
+# COMMAND ----------
+
+from databricks import automl
+
+summary = automl.classify(train, target_col='lifestyle', timeout_minutes=5, max_trials=10)
+
+# COMMAND ----------
+
+help(automl.classify)
+
+# COMMAND ----------
+
+ht_agg_spark_df.display()
 
 # COMMAND ----------
 
