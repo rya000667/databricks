@@ -14,7 +14,21 @@
 
 # COMMAND ----------
 
-dbutils.fs.rm('dbfs:/user/hive/warehouse/dsfda.db/ht_agg', True)
+# MAGIC %sh
+# MAGIC pwd
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC ls DSFDA-1.1.0/Includes/Classroom-Setup
+
+# COMMAND ----------
+
+# MAGIC %run "./DSFDA-1.1.0/Includes/Classroom-Setup"
+
+# COMMAND ----------
+
+# dbutils.fs.rm('dbfs:/user/hive/warehouse/dsfda.db/ht_agg', True)
 
 # COMMAND ----------
 
@@ -554,7 +568,7 @@ type(train)
 
 # COMMAND ----------
 
-help(automl.regress)
+# help(automl.regress)
 
 # COMMAND ----------
 

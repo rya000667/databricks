@@ -1,11 +1,10 @@
 # Databricks notebook source
-
 courseName = "dsfda"
 
 # COMMAND ----------
 
 # MAGIC %scala
-# MAGIC 
+# MAGIC //dbfs:/user/hive/warehouse/dsfda.db/ht_agg
 # MAGIC // **********************************
 # MAGIC //  GET AZURE DATASOURCE
 # MAGIC // **********************************
@@ -349,4 +348,8 @@ spark.sql(
     )
 """
 );
+
+
+# COMMAND ----------
+
 
