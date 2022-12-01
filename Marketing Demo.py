@@ -28,6 +28,25 @@
 
 # COMMAND ----------
 
+# MAGIC %sh
+# MAGIC ls dbfs:/FileStore/
+
+# COMMAND ----------
+
+dbutils.fs.ls('dbfs:/FileStore/tables')
+
+# COMMAND ----------
+
+fileLoc = 'dbfs:/FileStore/tables/dummy_data.csv'
+
+df = spark.read.format("csv").option("inferSchema", True).option("header", True).option("sep", ",").load(fileLoc)
+
+# COMMAND ----------
+
+df.write.format("parquet").save('dbfs:/FileStore/tables/dummy_data.parquet')
+
+# COMMAND ----------
+
 # dbutils.fs.rm('dbfs:/user/hive/warehouse/dsfda.db/ht_agg', True)
 
 # COMMAND ----------
