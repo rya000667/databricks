@@ -79,15 +79,20 @@ spark.sql(
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE SCHEMA amdam
+# MAGIC CREATE SCHEMA sflist
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE TABLE amdam.data
+# MAGIC CREATE TABLE sflist.data
 # MAGIC     USING CSV
-# MAGIC     OPTIONS (header "true", inferSchema "true")
-# MAGIC     LOCATION '/dbfs/mnt/training/airbnb/amsterdam-listings'
+# MAGIC     OPTIONS (
+# MAGIC     header="true", 
+# MAGIC     delimiter=",",
+# MAGIC     inferSchema="true",
+# MAGIC     path="dbfs:/mnt/training/airbnb-sf-listings.csv"
+# MAGIC     )
+# MAGIC     
 
 # COMMAND ----------
 
@@ -111,6 +116,41 @@ df_spark = spark.createDataFrame(df)
 # housing_spark_df.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/bosds/housing-data")
 
 df_spark.write.format("csv").mode("overwrite").option("overwriteSchema", "true").save("/mnt/training/airbnb/cleaned/clean")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #Explore San Francisco Airbnb Data
+
+# COMMAND ----------
+
+# high level details
+sf_airbnb_df = spark.sql("SELECT * FROM sflist.data")
+
+# COMMAND ----------
+
+display(sf_airbnb_df)
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT *
+# MAGIC FROM sflist.data
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %sql 
+# MAGIC -- Total Records
+# MAGIC SELECT COUNT(*) AS totalRecords
+# MAGIC FROM sflist.data
+
+# COMMAND ----------
+
+
 
 # COMMAND ----------
 
